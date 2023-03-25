@@ -8,7 +8,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     var todoItems: Results<Item>?
@@ -21,8 +21,6 @@ class ToDoListViewController: UITableViewController {
   
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
         setupNavigationBar()
     }
@@ -57,6 +55,21 @@ class ToDoListViewController: UITableViewController {
         alert.addAction(action)
         present(alert, animated: true)
     }
+    
+    //MARK: - Delete Data From Swipe
+    
+    override func updateModel(at indexPath: IndexPath) {
+        
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write({
+                    realm.delete(item)
+                })
+            } catch {
+                print("Error delete \(error)")
+            }
+        }
+    }
 }
 
 //MARK: - TableView DataSource and Delegate
@@ -67,7 +80,7 @@ extension ToDoListViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
@@ -85,7 +98,6 @@ extension ToDoListViewController {
             do {
                 try realm.write {
                     item.done = !item.done
-                    //realm.delete(item)
                 }
             } catch {
                 print("Error saving done status \(error)")
@@ -103,6 +115,7 @@ extension ToDoListViewController {
         todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
     }
+    
 }
 
 //MARK: - Search bar methods
