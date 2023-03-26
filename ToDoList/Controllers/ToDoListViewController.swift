@@ -7,8 +7,11 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
+    
+    @IBOutlet weak var searchBar: UISearchBar!
     
     let realm = try! Realm()
     var todoItems: Results<Item>?
@@ -21,6 +24,16 @@ class ToDoListViewController: SwipeTableViewController {
   
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.separatorStyle = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        title = selectedCategory?.name
+        
+        searchBar.barTintColor = UIColor(hexString: selectedCategory?.color)
+        searchBar.searchTextField.backgroundColor = .white
         
         setupNavigationBar()
     }
@@ -84,6 +97,15 @@ extension ToDoListViewController {
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
+            
+            let colorCategory = UIColor(hexString: selectedCategory?.color)
+            
+            if let color = colorCategory?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count)) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(backgroundColor: color, returnFlat: true)
+            }
+            
+           
             cell.accessoryType = item.done ? .checkmark : .none
         } else {
             cell.textLabel?.text = "No Items Added"
@@ -142,10 +164,15 @@ extension ToDoListViewController: UISearchBarDelegate {
 extension ToDoListViewController {
     private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
-        navigationController?.navigationBar.tintColor = .white
+        
+        let color = ContrastColorOf(backgroundColor: UIColor(hexString: selectedCategory?.color), returnFlat: true)
+        
+        navigationController?.navigationBar.tintColor = color
+        
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .systemCyan
-        appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        appearance.backgroundColor = UIColor(hexString: selectedCategory?.color)
+        appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: color]
+        appearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: color]
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationController?.navigationBar.standardAppearance
     }

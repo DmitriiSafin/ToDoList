@@ -7,6 +7,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
     
@@ -17,6 +18,12 @@ class CategoryViewController: SwipeTableViewController {
         super.viewDidLoad()
         
         loadCategories()
+        
+        tableView.separatorStyle = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         setupNavigationBar()
     }
 
@@ -30,6 +37,8 @@ class CategoryViewController: SwipeTableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { action in
             let newCategory = Category()
             newCategory.name = textField.text ?? ""
+            let color = UIColor.randomFlat()
+            newCategory.color = color?.hexValue()
             self.save(category: newCategory)
         }
         
@@ -91,6 +100,8 @@ extension CategoryViewController {
         
         let category = categories?[indexPath.row]
         cell.textLabel?.text = category?.name ?? "No Categories Added Yet"
+        cell.backgroundColor = UIColor(hexString: category?.color ?? "64D2FF")
+        cell.textLabel?.textColor = ContrastColorOf(backgroundColor: UIColor(hexString: category?.color), returnFlat: true)
         
         return cell
     }
@@ -118,9 +129,11 @@ extension CategoryViewController {
     private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         navigationController?.navigationBar.tintColor = .white
+        
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .systemCyan
         appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = navigationController?.navigationBar.standardAppearance
     }
